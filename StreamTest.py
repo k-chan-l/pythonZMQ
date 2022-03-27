@@ -1,32 +1,31 @@
 import zmq
 import cv2
 import base64
+import numpy as np
 
 context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.bind("tcp://*:12346")
 
-#  Socket to talk to server
-print("Connecting to hello world server…")
-socket = context.socket(zmq.REQ)
-socket.connect("tcp://localhost:5555")
 
-cap = cv2.VideoCapture(0)
-
-# cap.set(3, 1280)  # set width
-# cap.set(4, 720)  # set Height
+print("Start Server")
 while True:
-    try:
-        color_img = cv2.imread('test.jpg', cv2.IMREAD_COLOR)
-        ret, frames = cap.read()
+    message = socket.recv() # recieve
+    # 디코딩
+    message2 = message.decode('utf-8')
+    img = base64.b64decode(message2)
+    color2 = np.asarray(bytearray(img), dtype="uint8")
+    testImage = cv2.imdecode(color2, 1)
 
-        color = cv2.imencode('.jpg', color_img)
-        a = base64.b64encode(color[1]).decode('utf-8').encode('utf-8')
-
-        #  Do 10 requests, waiting each time for a response
-        socket.send(a)
-
-    except KeyboardInterrupt:
-        cap.release()
-        cv2.destroyWindow()
-        print("client close")
+    #  이미지 표시
+    cv2.imshow('test', testImage)
+    print("Image arrived")
+    if cv2.waitKey(30) == 27:
         break
-    #  Get the reply.
+    socket.send(b"World")
+socket.send(b"Exit")
+cv2.destroyAllWindows()
+socket.close()
+print("Server close")
+
+    #  Send reply back to client

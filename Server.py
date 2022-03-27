@@ -4,7 +4,7 @@ import cv2
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
-socket.bind("tcp://*:5555")
+socket.bind("tcp://*:12345")
 
 while True:
     #  Wait for next request from client
